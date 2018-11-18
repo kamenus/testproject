@@ -1,5 +1,8 @@
+"use strict";
+
 // Данные
 let state = [...loadedState];
+
 // Состояние
 const stateOfView = {
   name: false,
@@ -112,7 +115,7 @@ function paginationClicker(pageCount){
   };
 };
 
-changeState = (fieldName, value) => stateOfView[fieldName] = value;
+const changeState = (fieldName, value) => stateOfView[fieldName] = value;
 
 const fieldOnClick = field => () => {
   currentPage = 0;
@@ -132,7 +135,7 @@ const fieldOnClick = field => () => {
 
 const searchOnClick = () => {
   currentPage = 0;
-  const {value} = document.querySelector('#searchInput');
+  const { value } = document.querySelector('#searchInput');
 
   if (value.replace(/ /g,'')) {
     state = loadedState.reduce( 
@@ -153,7 +156,14 @@ const searchOnClick = () => {
   mountStateToView();
 };
 
-const getMocks = (sizeOfMocks) => {
+
+const searchInputOnKeyDown = ({ keyCode }) => {
+  if (keyCode === 13) {
+    searchOnClick();
+  }
+}
+
+const getMocks = sizeOfMocks => {
   const stringSpace = {
     name: ['Vasya', 'Kolya', 'Petya', 'Jenya', 'Sasha'],
     position: ['Developer', 'HR', 'Product Manager', 'Manager', 'Tester', 'QA Lead'],
@@ -197,7 +207,9 @@ window.addEventListener("load", () => {
   ); 
 
   const searchButton = document.querySelector('#searchButton');
+  const searchInput = document.querySelector('#searchInput');
   searchButton.addEventListener('click', searchOnClick);
+  searchInput.addEventListener('keyup', searchInputOnKeyDown);
 });
 
 
