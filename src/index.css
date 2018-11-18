@@ -52,12 +52,23 @@ html {
   position: relative;
   transition: all 0.5s ease;
 }
-#employeeTable tbody:hover td {
+
+.tableHeader {
+  background-color: #fff !important;
+  border-width: 0;
+  border-bottom: 1px solid #383838;
+  cursor: pointer;
+}
+
+.pagination__btn--active {
+  background-color: white;
+}
+/* #employeeTable tbody:hover td {
   color: transparent;
   text-shadow: 0 0 3px #a09f9d;
 }
 #employeeTable tbody:hover tr:hover td {
   color: #444444;
   text-shadow: none;
-}
+} */
 

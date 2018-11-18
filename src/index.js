@@ -1,39 +1,3 @@
-// Здесь вводим начальное значение для стейта
-const loadedState = [
-  {
-    name: 'Vasya',
-    position: 'Developer',
-    office: 'New York',
-    age: 27,
-    startdate: '2013/08/11',
-    salary: 23789,
-  },
-  {
-    name: 'Anton',
-    position: 'HR',
-    office: 'California',
-    age: 21,
-    startdate: '2015/08/11',
-    salary: 15560,
-  },
-  {
-    name: 'Dan',
-    position: 'Developer',
-    office: 'London',
-    age: 26,
-    startdate: '2016/08/11',
-    salary: 100000,
-  },
-  {
-    name: 'Bob',
-    position: 'Product manager',
-    office: 'Moscow',
-    age: 32,
-    startdate: '2011/08/11',
-    salary: 32000,
-  },
-];
-
 // Данные
 let state = [...loadedState];
 // Состояние
@@ -45,6 +9,9 @@ const stateOfView = {
   startdate: false,
   salary: false,
 };
+
+let currentPage = 0;
+const sizeOfView = 10;
  
 const removeOldView = (view, withOut = null) => {
   const mutableView = view;
@@ -57,11 +24,16 @@ const removeOldView = (view, withOut = null) => {
   return mutableView;
 };
 
+const getCurrentView = (arr) => (
+  arr.slice(currentPage * sizeOfView, (currentPage + 1) * sizeOfView - 1)
+);
+
 const mountStateToView = () => {
   const routContainer = document.querySelector("#employeeTable");
   const headerOfRoutContainer = document.querySelector(".tableHeader");
+  const paginationContainer = document.querySelector(".pagination");
 
-  const newView = state.map(({
+  const newView = getCurrentView(state).map(({
     name,
     position,
     office,
@@ -83,23 +55,75 @@ const mountStateToView = () => {
   );
 
   removeOldView(routContainer, headerOfRoutContainer);
+  removeOldView(paginationContainer);
+
+  let paginationBtns = '';
+  for(let i = 0; i < (Math.floor(state.length / sizeOfView) ); i++) {
+    paginationBtns = `
+      ${paginationBtns}
+      <button class="pagination__btn ${i === currentPage ? 'pagination__btn--active' : ''}">
+        ${i + 1}
+      </button>
+    `;
+  }
+
+  paginationBtns = `
+    <button class="pagination_btn-previous">
+      Previous
+    </button>
+    ${paginationBtns}
+    <button class="pagination_btn-next">
+      Next
+    </button>
+  `;
 
   routContainer.insertAdjacentHTML("beforeend", newView);
+  paginationContainer.insertAdjacentHTML("beforeend", paginationBtns);
+
+  [...document.querySelectorAll('.pagination__btn')].map(
+    (btn, id) => {
+      btn.addEventListener('click', changePaginationPage(id));
+    }
+  );
+  document.querySelector('.pagination_btn-previous').addEventListener('click', paginationClicker(-1));
+  document.querySelector('.pagination_btn-next').addEventListener('click', paginationClicker(1));
+};
+
+function changePaginationPage(newPage){
+  return () => {
+    currentPage = newPage;
+
+    mountStateToView();
+  }
+};
+
+function paginationClicker(pageCount){
+  return () => {
+    const maxPages = Math.floor(state.length / sizeOfView);
+    const pageSum = currentPage + pageCount;
+    
+    if (pageSum > 0) {
+      currentPage = (currentPage + pageCount) % maxPages;
+    } else {
+      currentPage = maxPages + pageSum;
+    }
+
+    mountStateToView();
+  };
 };
 
 changeState = (fieldName, value) => stateOfView[fieldName] = value;
 
 const fieldOnClick = field => () => {
+  currentPage = 0;
   const fieldValue = stateOfView[field];
   
-  state.sort((user1, user2) => {
-    if (user1[field] > user2[field]) {
-      return fieldValue ? -1 : 1;
-    } else if (user1[field] < user2[field]) {
-      return fieldValue ? 1 : 1;
-    }
-    return 0;
-  });
+  state.sort((user1, user2) => (
+      fieldValue
+       ? (user1[field] > user2[field]) - (user1[field] < user2[field])
+       : (user1[field] < user2[field]) - (user1[field] > user2[field])
+    )
+  );
 
   changeState(field, !fieldValue);
 
@@ -107,6 +131,7 @@ const fieldOnClick = field => () => {
 };
 
 const searchOnClick = () => {
+  currentPage = 0;
   const {value} = document.querySelector('#searchInput');
 
   if (value.replace(/ /g,'')) {
@@ -126,7 +151,43 @@ const searchOnClick = () => {
   } else state = loadedState;
     
   mountStateToView();
-}
+};
+
+const getMocks = (sizeOfMocks) => {
+  const stringSpace = {
+    name: ['Vasya', 'Kolya', 'Petya', 'Jenya', 'Sasha'],
+    position: ['Developer', 'HR', 'Product Manager', 'Manager', 'Tester', 'QA Lead'],
+    office: ['New York', 'Moscow', 'Berlin', 'London'],
+  };
+
+  const numberSpace = {
+    age: 60,
+    salary: 23789,
+  };
+
+  const mockArr = [];
+
+  for(let i = 0; i < sizeOfMocks; i++) {
+    let userCard = {};
+
+    userCard.startdate = '2013/08/11';
+
+    Object.keys(stringSpace).map(field => {
+      const arrValue = stringSpace[field];
+
+      userCard[field] = arrValue[Math.floor(Math.random() * arrValue.length )];
+    });
+
+    Object.keys(numberSpace).map(field => {
+      const arrValue = numberSpace[field];
+
+      userCard[field] = Math.floor(Math.random() * (arrValue - 20)) + 20;
+    });
+    
+    mockArr.push(userCard);
+  }
+  return mockArr;
+};
 
 window.addEventListener("load", () => {
   mountStateToView();
